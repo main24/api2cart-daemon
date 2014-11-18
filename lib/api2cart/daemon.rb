@@ -1,6 +1,7 @@
 require 'api2cart/daemon/version'
 require 'api2cart/daemon/http_message_reader'
 require 'api2cart/daemon/proxy_server'
+require 'api2cart/daemon/proxy_connection_handler'
 require 'active_support/core_ext/module/delegation'
 
 module Api2cart
