@@ -87,6 +87,23 @@ MESSAGE
         end
       end
     end
+
+    describe 'request url' do
+      subject { http_message.request_url }
+
+      let(:message) do
+          <<MESSAGE
+GET http://localhost:4096/path?key=value HTTP/1.1
+Host: localhost:4096
+User-Agent: RubyHTTPGem/0.6.2
+
+MESSAGE
+      end
+
+      it 'parses request URL from request line' do
+        should == 'http://localhost:4096/path?key=value'
+      end
+    end
   end
 
   context 'when message is a valid HTTP response' do

@@ -12,7 +12,7 @@ module Api2cart::Daemon
     def read_http_message
       message = read_entire_message_from_socket!
       host, port = parse_host_and_port(parser.headers['Host'])
-      OpenStruct.new message: message, request_host: host, request_port: port
+      OpenStruct.new message: message, request_host: host, request_port: port, request_url: parser.request_url
     end
 
     protected
