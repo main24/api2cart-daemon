@@ -28,15 +28,12 @@ class MockRemoteServer < Struct.new(:port, :response)
   end
 
   def compose_http_response
-    http_response = <<RESPONSE
+    <<RESPONSE + response
 HTTP/1.1 200 OK
 Content-Type: text/plain
 Content-Length: #{response.bytesize}
 Connection: close
 
 RESPONSE
-    http_response.tap do |http_response|
-      http_response << response
-    end
   end
 end

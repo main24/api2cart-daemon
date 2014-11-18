@@ -1,8 +1,16 @@
 require 'api2cart/daemon/version'
-require 'celluloid/io'
+require 'api2cart/daemon/http_message_reader'
+require 'api2cart/daemon/proxy_server'
+require 'active_support/core_ext/module/delegation'
 
 module Api2cart
   module Daemon
-    # Your code goes here...
+    def self.run(port)
+      ProxyServer.new.run(port)
+    end
+
+    def self.run_async(port)
+      ProxyServer.new.run_async(port)
+    end
   end
 end
