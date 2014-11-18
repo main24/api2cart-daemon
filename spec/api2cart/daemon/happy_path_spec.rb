@@ -31,7 +31,7 @@ describe Api2cart::Daemon, 'happy path' do
 
     let(:expected_request_log) do
       <<EXPECTED_SERVER_LOG
-GET http://localhost:4096/ HTTP/1.1\r
+GET / HTTP/1.1\r
 Host: localhost:4096\r
 User-Agent: RubyHTTPGem/0.6.2\r
 \r
@@ -46,7 +46,7 @@ EXPECTED_SERVER_LOG
 
     let(:expected_request_log) do
       <<EXPECTED_SERVER_LOG
-GET http://localhost:4096 HTTP/1.1\r
+GET / HTTP/1.1\r
 Host: localhost:4096\r
 User-Agent: RubyHTTPGem/0.6.2\r
 \r
@@ -61,7 +61,7 @@ EXPECTED_SERVER_LOG
 
     let(:expected_request_log) do
       <<EXPECTED_SERVER_LOG
-GET http://localhost:4096/path?key=value&another_key=another_value HTTP/1.1\r
+GET /path?key=value&another_key=another_value HTTP/1.1\r
 Host: localhost:4096\r
 User-Agent: RubyHTTPGem/0.6.2\r
 \r

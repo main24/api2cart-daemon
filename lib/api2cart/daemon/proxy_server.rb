@@ -25,7 +25,11 @@ module Api2cart::Daemon
     end
 
     def handle_connection(client_socket)
-      ProxyConnectionHandler.new.handle_proxy_connection(client_socket)
+      begin
+        ProxyConnectionHandler.new.handle_proxy_connection(client_socket)
+      rescue Exception => e
+        puts "! Exception: #{e.inspect}"
+      end
     end
   end
 end
