@@ -80,18 +80,20 @@ Host: localhost:4096
 User-Agent: RubyHTTPGem/0.6.2
 
 MESSAGE
-          it 'parsed port from headers' do
-            it { should == 4096 }
-          end
+        end
+
+        it 'parses port from headers' do
+          should == '4096'
         end
       end
     end
+  end
 
-    context 'when message is a valid HTTP response' do
-      subject { http_message.message }
+  context 'when message is a valid HTTP response' do
+    subject { http_message.message }
 
-      let(:message) do
-        <<MESSAGE
+    let(:message) do
+      <<MESSAGE
 HTTP/1.1 200 OK
 Date: Tue, 18 Nov 2014 10:19:56 GMT
 Server: Apache/2.2.27 (Unix) mod_ssl/2.2.27 OpenSSL/1.0.1e-fips mod_bwlimited/1.4 mod_fcgid/2.3.9
@@ -111,11 +113,10 @@ Content-Type: application/json; charset=utf-8
 0\r
 \r
 MESSAGE
-      end
+    end
 
-      it 'returns the full message' do
-        should == message
-      end
+    it 'returns the full message' do
+      should == message
     end
   end
 end
