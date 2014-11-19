@@ -1,4 +1,5 @@
 require 'ostruct'
+require 'http_parser'
 
 module Api2cart::Daemon
   class HTTPMessageReader < Struct.new(:socket)
