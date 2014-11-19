@@ -1,4 +1,5 @@
 require 'reel/spy'
+require 'uri'
 
 module Api2cart::Daemon
   class ProxyConnectionHandler
