@@ -1,6 +1,6 @@
 describe Api2cart::Daemon, 'happy path' do
   let(:mock_server) { MockRemoteServer.new(4096, 'I am a mock server') }
-  let(:daemon_proxy) { Api2cart::Daemon::ProxyServer.new }
+  let(:daemon_proxy) { Api2cart::Daemon::ProxyServer.new(2048) }
 
   before do
     Celluloid.shutdown
@@ -9,7 +9,7 @@ describe Api2cart::Daemon, 'happy path' do
 
   before do
     mock_server.run_async
-    daemon_proxy.run_async 2048
+    daemon_proxy.run_async
   end
 
   after do

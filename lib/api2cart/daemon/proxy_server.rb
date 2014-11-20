@@ -1,20 +1,20 @@
 require 'celluloid/io'
 
 module Api2cart::Daemon
-  class ProxyServer
+  class ProxyServer < Struct.new(:port)
     include Celluloid::IO
 
-    def run(port)
-      accept_connections bind_proxy_socket(port)
+    def run
+      accept_connections bind_proxy_socket
     end
 
-    def run_async(port)
-      async.accept_connections bind_proxy_socket(port)
+    def run_async
+      async.accept_connections bind_proxy_socket
     end
 
     protected
 
-    def bind_proxy_socket(port)
+    def bind_proxy_socket
       TCPServer.new('', port).tap do
         puts "API2Cart Daemon is running at 0.0.0.0:#{port}"
       end
@@ -26,10 +26,18 @@ module Api2cart::Daemon
 
     def handle_connection(client_socket)
       begin
-        ProxyConnectionHandler.new.handle_proxy_connection(client_socket)
+        connection_handler.handle_proxy_connection(client_socket)
       rescue Exception => e
         puts "! Exception: #{e.inspect}"
       end
+    end
+
+    def connection_handler
+      @connection_handler ||= ProxyConnectionHandler.new(anti_throttler)
+    end
+
+    def anti_throttler
+      @anti_throttler ||= AntiThrottler.new
     end
   end
 end

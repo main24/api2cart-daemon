@@ -1,12 +1,12 @@
 describe Api2cart::Daemon, 'happy path' do
-  let(:daemon_proxy) { Api2cart::Daemon::ProxyServer.new }
+  let(:daemon_proxy) { Api2cart::Daemon::ProxyServer.new(2048) }
 
   before do
     Celluloid.shutdown
     Celluloid.boot
   end
 
-  before { daemon_proxy.run_async 2048 }
+  before { daemon_proxy.run_async }
 
   after { Celluloid::Actor.kill(daemon_proxy) }
 

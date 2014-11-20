@@ -2,28 +2,32 @@ require 'reel/spy'
 require 'uri'
 
 module Api2cart::Daemon
-  class ProxyConnectionHandler
+  class ProxyConnectionHandler < Struct.new(:anti_throttler)
     def handle_proxy_connection(client_socket)
       client_socket = Reel::Spy.new client_socket
 
       http_message = read_http_message(client_socket)
-
-      response = if not_proxy_request?(http_message)
-                   bad_request
-                 else
-                   begin
-                     processed_message = process_client_request(http_message)
-                     send_request_to_remote_server(http_message.request_host, http_message.request_port, processed_message)
-                   rescue Exception => e
-                     puts "! Problem connecting to server: #{e.inspect}"
-                     internal_server_error(e)
-                   end
-                 end
-
+      response = compose_response_for(http_message)
       send_response_to_client(client_socket, response)
     end
 
     protected
+
+    def compose_response_for(http_message)
+      return bad_request if not_proxy_request?(http_message)
+
+      anti_throttler.prevent_throttling { request_remote_server(http_message) }
+    end
+
+    def request_remote_server(http_message)
+      begin
+        processed_message = process_client_request(http_message)
+        send_request_to_remote_server(http_message.request_host, http_message.request_port, processed_message)
+      rescue Exception => e
+        puts "! Problem connecting to server: #{e.inspect}"
+        internal_server_error(e)
+      end
+    end
 
     def process_client_request(client_request)
       parsed_request_url = URI.parse client_request.request_url
