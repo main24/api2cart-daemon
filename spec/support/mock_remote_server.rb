@@ -19,12 +19,21 @@ class MockRemoteServer < Struct.new(:port, :response)
   end
 
   def accept_connections(server_socket)
-    loop do
-      client_socket = server_socket.accept
-      request_logger.write client_socket.readpartial(16384)
-      client_socket.write compose_http_response
-      client_socket.close
-    end
+    loop { async.handle_connection server_socket.accept }
+  end
+
+  def handle_connection(client_socket)
+    read_request client_socket
+    write_response client_socket
+  end
+
+  def read_request(client_socket)
+    request_logger.write client_socket.readpartial(16384)
+  end
+
+  def write_response(client_socket)
+    client_socket.write compose_http_response
+    client_socket.close
   end
 
   def compose_http_response
