@@ -1,5 +1,5 @@
 describe Api2cart::Daemon, 'happy path' do
-  let(:mock_server) { MockRemoteServer.new(4096, 'I am a mock server') }
+  let(:mock_server) { MockServer.new(4096, 'I am a mock server') }
   let(:daemon_proxy) { Api2cart::Daemon::ProxyServer.new(2048) }
 
   before do

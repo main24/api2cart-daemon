@@ -1,5 +1,5 @@
 describe Api2cart::Daemon::ProxyServer do
-  let(:remote_server) { ManuallyControlledMockServer.new(4096, '') }
+  let(:remote_server) { InspectableMockServer.new(4096, '') }
   let(:daemon_proxy) { Api2cart::Daemon::ProxyServer.new(2048) }
 
   before do
@@ -16,7 +16,7 @@ describe Api2cart::Daemon::ProxyServer do
     Celluloid::Actor.kill(daemon_proxy)
     Celluloid::Actor.kill(remote_server)
 
-    sleep 0.5
+    sleep 0.05
   end
 
   def request_to_random_store
@@ -29,6 +29,8 @@ describe Api2cart::Daemon::ProxyServer do
     end
     sleep 0.05 # TODO: invent something more clever than this
   end
+
+  # Exception in block
 
   context 'when it is an API2Cart request' do
     describe 'total simultaneous request count restriction' do

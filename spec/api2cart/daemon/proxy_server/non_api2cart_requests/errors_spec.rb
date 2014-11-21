@@ -11,9 +11,9 @@ describe Api2cart::Daemon, 'happy path' do
   after { Celluloid::Actor.kill(daemon_proxy) }
 
   shared_examples 'it continues to serve' do
-    let(:mock_remote_server) { MockRemoteServer.new(4096, 'I am a mock server') }
+    let(:mock_server) { MockServer.new(4096, 'I am a mock server') }
 
-    before { mock_remote_server.run_async }
+    before { mock_server.run_async }
 
     let(:proxy_response) { HTTP.via('localhost', 2048).get('http://localhost:4096').to_s }
 

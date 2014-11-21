@@ -1,6 +1,6 @@
 require 'stringio'
 
-class MockRemoteServer < Struct.new(:port, :response)
+class MockServer < Struct.new(:port, :response)
   include Celluloid::IO
 
   def run_async

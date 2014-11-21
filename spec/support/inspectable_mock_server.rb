@@ -1,6 +1,6 @@
-require_relative 'mock_remote_server'
+require_relative 'mock_server'
 
-class ManuallyControlledMockServer < MockRemoteServer
+class InspectableMockServer < MockServer
   attr_reader :request_queue
 
   def run_async
