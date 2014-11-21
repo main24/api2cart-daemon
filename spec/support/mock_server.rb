@@ -12,6 +12,10 @@ class MockServer < Struct.new(:port, :response)
     request_logger.string
   end
 
+  def request_paths
+    @request_paths ||= []
+  end
+
   protected
 
   def request_logger
@@ -28,7 +32,9 @@ class MockServer < Struct.new(:port, :response)
   end
 
   def read_request(client_socket)
-    request_logger.write client_socket.readpartial(16384)
+    request = client_socket.readpartial(16384)
+    request_paths << request.lines.first.match(/^.+ (.+) HTTP\/1\.1/)[1]
+    request_logger.write request
   end
 
   def write_response(client_socket)
