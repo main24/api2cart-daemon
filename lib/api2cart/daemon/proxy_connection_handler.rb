@@ -16,7 +16,7 @@ module Api2cart::Daemon
     def compose_response_for(http_message)
       return bad_request if not_proxy_request?(http_message)
 
-      anti_throttler.prevent_throttling { request_remote_server(http_message) }
+      anti_throttler.prevent_throttling(http_message) { request_remote_server(http_message) }
     end
 
     def request_remote_server(http_message)

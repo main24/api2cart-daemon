@@ -1,19 +1,44 @@
+require 'http'
+
 module Api2cart::Daemon
   class AntiThrottler
     def initialize
       self.requests_currently_running = []
       self.waiting_queue = []
+      self.stores_quota = Hash.new(0)
     end
 
-    def prevent_throttling
-      guard_from_exceeding_total_simultaneous_request_count do
-        yield
+    def prevent_throttling(http_message)
+      guard_from_exceeding_allowed_total_simultaneous_request_count do
+        guard_from_exceeding_allowed_requests_per_store(http_message) do
+          yield
+        end
       end
     end
 
     protected
 
-    def guard_from_exceeding_total_simultaneous_request_count(&block)
+    attr_accessor :waiting_queue
+    attr_accessor :requests_currently_running
+
+    attr_accessor :stores_quota
+
+    def guard_from_exceeding_allowed_requests_per_store(http_message)
+      store_key = http_message.request_params['store_key']
+      if stores_quota[store_key] == 0
+        close_session(store_key, http_message.request_host, http_message.request_port)
+        stores_quota[store_key] = 5
+      end
+
+      stores_quota[store_key] -= 1
+      yield
+    end
+
+    def close_session(store_key, request_host, request_port)
+      HTTP.get "http://#{request_host}:#{request_port}/v1.0/cart.disconnect.json?store_key=#{store_key}"
+    end
+
+    def guard_from_exceeding_allowed_total_simultaneous_request_count(&block)
       if requests_currently_running.count >= 20
         wait_in_queue!
       end
@@ -48,8 +73,5 @@ module Api2cart::Daemon
       waiting_queue << condition
       condition.wait
     end
-
-    attr_accessor :waiting_queue
-    attr_accessor :requests_currently_running
   end
 end
