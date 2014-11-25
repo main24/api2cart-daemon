@@ -54,10 +54,7 @@ describe Api2cart::Daemon::ProxyServer do
             end
 
             context 'when first request is complete' do
-              before do
-                remote_server.respond_to_first
-                sleep(0.05) # TODO: get rid of this shame
-              end
+              before { remote_server.respond_to_first }
 
               specify '21st request reached the server' do
                 expect(remote_server.request_queue.count).to eq 20
