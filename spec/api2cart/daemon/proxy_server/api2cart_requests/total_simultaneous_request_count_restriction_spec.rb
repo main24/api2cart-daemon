@@ -23,15 +23,6 @@ describe Api2cart::Daemon::ProxyServer do
     "http://localhost:4096/v1.0/product.count.json?store_key=#{rand}"
   end
 
-  def make_async_request(request_url)
-    Thread.new do
-      HTTP.via('localhost', 2048).get(request_url)
-    end
-    sleep 0.05 # TODO: invent something more clever than this
-  end
-
-  # Exception in block
-
   context 'when it is an API2Cart request' do
     describe 'total simultaneous request count restriction' do
       context 'given maximum allowed amount of simultaneous requests is 20' do

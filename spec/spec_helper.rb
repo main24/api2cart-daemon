@@ -13,4 +13,6 @@ RSpec.configure do |config|
     Celluloid.shutdown
     Celluloid.boot
   end
+
+  config.include RequestHelper
 end
