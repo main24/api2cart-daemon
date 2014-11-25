@@ -1,5 +1,7 @@
 require 'ostruct'
 require 'http_parser'
+require 'uri'
+require 'active_support/core_ext/object/blank'
 
 module Api2cart::Daemon
   class HTTPMessageReader < Struct.new(:socket)
@@ -13,7 +15,7 @@ module Api2cart::Daemon
     def read_http_message
       message = read_entire_message_from_socket!
       host, port = parse_host_and_port(parser.headers['Host'])
-      OpenStruct.new message: message, request_host: host, request_port: port, request_url: parser.request_url
+      OpenStruct.new message: message, request_host: host, request_port: port, request_url: parser.request_url, request_params: parse_query_params(parser.request_url)
     end
 
     protected
@@ -28,6 +30,12 @@ module Api2cart::Daemon
       parser.on_message_complete = ->() do
         @complete_http_message_received = true
       end
+    end
+
+    def parse_query_params(request_url)
+      query = URI.parse(request_url).query
+      return if query.blank?
+      Hash[URI::decode_www_form(query)]
     end
 
     def read_next_chunk
