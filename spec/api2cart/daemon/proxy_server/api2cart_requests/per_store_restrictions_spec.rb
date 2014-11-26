@@ -112,5 +112,52 @@ describe Api2cart::Daemon::ProxyServer do
         end
       end
     end
+
+    context 'when I do simultaneous requests' do
+      let(:mock_server) { InspectableMockServer.new(4096, '') }
+
+      def make_async_request_to_store_with_key_of(key)
+        request_url = "http://localhost:4096/v1.0/product.count.json?store_key=#{key}"
+        make_async_request request_url
+      end
+
+      context 'when I do two requests to one store simultaneously' do
+        it 'closes session only once' do
+          request_threads = 2.times.map { make_async_request_to_store_with_key_of('first') }
+          sleep 0.05 # TODO: mock_server.wait_for_number_of_requests(2)
+
+          mock_server.dont_hold_requests
+          request_threads.each(&:join)
+
+          expect(mock_server.request_paths).to eq [
+                                                   '/v1.0/cart.disconnect.json?store_key=first',
+                                                   '/v1.0/product.count.json?store_key=first',
+                                                   '/v1.0/product.count.json?store_key=first'
+                                                  ]
+        end
+      end
+
+      context 'when I do 7 requests to one store simultaneously' do
+        it 'closes session twice' do
+          request_threads = 7.times.map { make_async_request_to_store_with_key_of('first') }
+          sleep 0.5
+
+          mock_server.dont_hold_requests
+          request_threads.each(&:join)
+
+          expect(mock_server.request_paths).to eq [
+                                                   '/v1.0/cart.disconnect.json?store_key=first',
+                                                   '/v1.0/product.count.json?store_key=first',
+                                                   '/v1.0/product.count.json?store_key=first',
+                                                   '/v1.0/product.count.json?store_key=first',
+                                                   '/v1.0/product.count.json?store_key=first',
+                                                   '/v1.0/product.count.json?store_key=first',
+                                                   '/v1.0/cart.disconnect.json?store_key=first',
+                                                   '/v1.0/product.count.json?store_key=first',
+                                                   '/v1.0/product.count.json?store_key=first'
+                                                  ]
+        end
+      end
+    end
   end
 end

@@ -1,6 +1,7 @@
 require 'api2cart/daemon/version'
 require 'api2cart/daemon/http_message_reader'
 require 'api2cart/daemon/total_session_count_guard'
+require 'api2cart/daemon/sessions_per_store_guard'
 require 'api2cart/daemon/anti_throttler'
 require 'api2cart/daemon/proxy_connection_handler'
 require 'api2cart/daemon/proxy_server'
