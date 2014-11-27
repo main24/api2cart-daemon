@@ -4,7 +4,8 @@ module Api2cart::Daemon
   class SessionsPerStoreGuard
     def initialize
       self.stores_quota = Hash.new(0)
-      self.closing_request_conditions = {}
+      self.closing_request = {}
+      self.current_requests = Hash.new([])
     end
 
     def guard(store_key, api_key, request_host, request_port)
@@ -23,7 +24,8 @@ module Api2cart::Daemon
     protected
 
     attr_accessor :stores_quota
-    attr_accessor :closing_request_conditions
+    attr_accessor :closing_request
+    attr_accessor :current_requests
 
     def try_again(store_key, api_key, request_host, request_port)
       guard(store_key, api_key, request_host, request_port) { yield }
@@ -32,7 +34,15 @@ module Api2cart::Daemon
     def make_request(store_key)
       stores_quota[store_key] -= 1
       puts "Making request for #{store_key}"
-      yield
+
+      condition = Celluloid::Condition.new
+      current_requests[store_key] << condition
+      result = yield
+
+      condition.broadcast
+      current_requests[store_key].delete condition
+
+      result
     end
 
     def can_make_request?(store_key)
@@ -49,25 +59,31 @@ module Api2cart::Daemon
     end
 
     def already_closing_session?(store_key)
-      closing_request_conditions.key? store_key
+      closing_request.key? store_key
     end
 
     def wait_for_closure(store_key)
-      closing_request_conditions[store_key].wait
+      closing_request[store_key].wait
     end
 
     def closing_request_url(store_key, api_key, request_host, request_port)
       "http://#{request_host}:#{request_port}/v1.0/cart.disconnect.json?api_key=#{api_key}&store_key=#{store_key}"
     end
 
+    def wait_for_current_store_requests_to_complete(store_key)
+      current_requests[store_key].each(&:wait)
+    end
+
     def close_session(store_key, api_key, request_host, request_port)
       condition = Celluloid::Condition.new
-      closing_request_conditions[store_key] = condition
+      closing_request[store_key] = condition
+
+      wait_for_current_store_requests_to_complete(store_key)
 
       puts "Closing #{store_key}..."
       HTTP.get(closing_request_url(store_key, api_key, request_host, request_port), socket_class: Celluloid::IO::TCPSocket)
       puts "...closed #{store_key}"
-      closing_request_conditions.delete store_key
+      closing_request.delete store_key
 
       stores_quota[store_key] = 5
 
