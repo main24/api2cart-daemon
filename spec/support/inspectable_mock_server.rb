@@ -47,14 +47,18 @@ class InspectableMockServer < MockServer
 
   def handle_connection(client_socket)
     if hold_requests
-      condition = Celluloid::Condition.new
-      request_queue << condition
-
       read_request client_socket
-      condition.wait
+      hold_request
       write_response client_socket
     else
       super
+    end
+  end
+
+  def hold_request
+    Celluloid::Condition.new.tap do |condition|
+      request_queue << condition
+      condition.wait
     end
   end
 end
