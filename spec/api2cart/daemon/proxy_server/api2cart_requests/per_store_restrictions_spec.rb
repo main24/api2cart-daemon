@@ -19,11 +19,13 @@ describe Api2cart::Daemon::ProxyServer do
   end
 
   context 'given maximum requests per store is 5' do
+    let(:api_key) { 's3krit' }
+
     context 'when I make a request to some store' do
       let(:mock_server) { MockServer.new(4096, '') }
 
       def make_request_to_store_with_key_of(key)
-        request_url = "http://localhost:4096/v1.0/product.count.json?store_key=#{key}"
+        request_url = "http://localhost:4096/v1.0/product.count.json?api_key=#{api_key}&store_key=#{key}"
         HTTP.via('localhost', 2048).get(request_url)
       end
 
@@ -31,8 +33,8 @@ describe Api2cart::Daemon::ProxyServer do
 
       it 'closes session before the request' do
         expect(mock_server.request_paths).to eq [
-                                                 '/v1.0/cart.disconnect.json?store_key=first',
-                                                 '/v1.0/product.count.json?store_key=first'
+                                                 '/v1.0/cart.disconnect.json?api_key=s3krit&store_key=first',
+                                                 '/v1.0/product.count.json?api_key=s3krit&store_key=first'
                                                 ]
       end
 
@@ -41,7 +43,7 @@ describe Api2cart::Daemon::ProxyServer do
 
         it 'sends the request right away' do
           expect(mock_server.request_paths.count).to eq 3
-          expect(mock_server.request_paths.last).to eq '/v1.0/product.count.json?store_key=first'
+          expect(mock_server.request_paths.last).to eq '/v1.0/product.count.json?api_key=s3krit&store_key=first'
         end
 
         context 'when I make a request to another store after that' do
@@ -50,8 +52,8 @@ describe Api2cart::Daemon::ProxyServer do
           it 'closes session before the request' do
             expect(mock_server.request_paths.count).to eq 5
             expect(mock_server.request_paths.last(2)).to eq [
-                                                             '/v1.0/cart.disconnect.json?store_key=second',
-                                                             '/v1.0/product.count.json?store_key=second'
+                                                             '/v1.0/cart.disconnect.json?api_key=s3krit&store_key=second',
+                                                             '/v1.0/product.count.json?api_key=s3krit&store_key=second'
                                                             ]
           end
 
@@ -63,9 +65,9 @@ describe Api2cart::Daemon::ProxyServer do
             it 'sends them right away' do
               expect(mock_server.request_paths.count).to eq 8
               expect(mock_server.request_paths.last(3)).to eq [
-                                                               '/v1.0/product.count.json?store_key=first',
-                                                               '/v1.0/product.count.json?store_key=first',
-                                                               '/v1.0/product.count.json?store_key=first'
+                                                               '/v1.0/product.count.json?api_key=s3krit&store_key=first',
+                                                               '/v1.0/product.count.json?api_key=s3krit&store_key=first',
+                                                               '/v1.0/product.count.json?api_key=s3krit&store_key=first'
                                                               ]
             end
 
@@ -75,8 +77,8 @@ describe Api2cart::Daemon::ProxyServer do
               it 'closes session before the request' do
                 expect(mock_server.request_paths.count).to eq 10
                 expect(mock_server.request_paths.last(2)).to eq [
-                                                                 '/v1.0/cart.disconnect.json?store_key=first',
-                                                                 '/v1.0/product.count.json?store_key=first'
+                                                                 '/v1.0/cart.disconnect.json?api_key=s3krit&store_key=first',
+                                                                 '/v1.0/product.count.json?api_key=s3krit&store_key=first'
                                                                 ]
               end
 
@@ -88,10 +90,10 @@ describe Api2cart::Daemon::ProxyServer do
                 it 'sends them right away' do
                   expect(mock_server.request_paths.count).to eq 14
                   expect(mock_server.request_paths.last(4)).to eq [
-                                                                   '/v1.0/product.count.json?store_key=second',
-                                                                   '/v1.0/product.count.json?store_key=second',
-                                                                   '/v1.0/product.count.json?store_key=second',
-                                                                   '/v1.0/product.count.json?store_key=second'
+                                                                   '/v1.0/product.count.json?api_key=s3krit&store_key=second',
+                                                                   '/v1.0/product.count.json?api_key=s3krit&store_key=second',
+                                                                   '/v1.0/product.count.json?api_key=s3krit&store_key=second',
+                                                                   '/v1.0/product.count.json?api_key=s3krit&store_key=second'
                                                                   ]
                 end
 
@@ -101,8 +103,8 @@ describe Api2cart::Daemon::ProxyServer do
                   it 'closes session before the request' do
                     expect(mock_server.request_paths.count).to eq 16
                     expect(mock_server.request_paths.last(2)).to eq [
-                                                                     '/v1.0/cart.disconnect.json?store_key=second',
-                                                                     '/v1.0/product.count.json?store_key=second'
+                                                                     '/v1.0/cart.disconnect.json?api_key=s3krit&store_key=second',
+                                                                     '/v1.0/product.count.json?api_key=s3krit&store_key=second'
                                                                     ]
                   end
                 end
@@ -117,7 +119,7 @@ describe Api2cart::Daemon::ProxyServer do
       let(:mock_server) { InspectableMockServer.new(4096, '') }
 
       def make_async_request_to_store_with_key_of(key)
-        request_url = "http://localhost:4096/v1.0/product.count.json?store_key=#{key}"
+        request_url = "http://localhost:4096/v1.0/product.count.json?api_key=#{api_key}&store_key=#{key}"
         make_async_request request_url
       end
 
@@ -130,9 +132,9 @@ describe Api2cart::Daemon::ProxyServer do
           request_threads.each(&:join)
 
           expect(mock_server.request_paths).to eq [
-                                                   '/v1.0/cart.disconnect.json?store_key=first',
-                                                   '/v1.0/product.count.json?store_key=first',
-                                                   '/v1.0/product.count.json?store_key=first'
+                                                   '/v1.0/cart.disconnect.json?api_key=s3krit&store_key=first',
+                                                   '/v1.0/product.count.json?api_key=s3krit&store_key=first',
+                                                   '/v1.0/product.count.json?api_key=s3krit&store_key=first'
                                                   ]
         end
       end
@@ -146,15 +148,15 @@ describe Api2cart::Daemon::ProxyServer do
           request_threads.each(&:join)
 
           expect(mock_server.request_paths).to eq [
-                                                   '/v1.0/cart.disconnect.json?store_key=first',
-                                                   '/v1.0/product.count.json?store_key=first',
-                                                   '/v1.0/product.count.json?store_key=first',
-                                                   '/v1.0/product.count.json?store_key=first',
-                                                   '/v1.0/product.count.json?store_key=first',
-                                                   '/v1.0/product.count.json?store_key=first',
-                                                   '/v1.0/cart.disconnect.json?store_key=first',
-                                                   '/v1.0/product.count.json?store_key=first',
-                                                   '/v1.0/product.count.json?store_key=first'
+                                                   '/v1.0/cart.disconnect.json?api_key=s3krit&store_key=first',
+                                                   '/v1.0/product.count.json?api_key=s3krit&store_key=first',
+                                                   '/v1.0/product.count.json?api_key=s3krit&store_key=first',
+                                                   '/v1.0/product.count.json?api_key=s3krit&store_key=first',
+                                                   '/v1.0/product.count.json?api_key=s3krit&store_key=first',
+                                                   '/v1.0/product.count.json?api_key=s3krit&store_key=first',
+                                                   '/v1.0/cart.disconnect.json?api_key=s3krit&store_key=first',
+                                                   '/v1.0/product.count.json?api_key=s3krit&store_key=first',
+                                                   '/v1.0/product.count.json?api_key=s3krit&store_key=first'
                                                   ]
         end
       end

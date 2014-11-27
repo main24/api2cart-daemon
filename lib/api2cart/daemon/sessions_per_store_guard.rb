@@ -7,7 +7,7 @@ module Api2cart::Daemon
       self.closing_request_conditions = {}
     end
 
-    def guard(store_key, request_host, request_port)
+    def guard(store_key, api_key, request_host, request_port)
       puts ''
       puts "Request for #{store_key}"
       puts "Quota: #{stores_quota}"
@@ -15,8 +15,8 @@ module Api2cart::Daemon
       if can_make_request?(store_key)
         make_request(store_key) { yield }
       else
-        close_session_or_wait_for_closure(store_key, request_host, request_port)
-        try_again(store_key, request_host, request_port) { yield }
+        close_session_or_wait_for_closure(store_key, api_key, request_host, request_port)
+        try_again(store_key, api_key, request_host, request_port) { yield }
       end
     end
 
@@ -25,8 +25,8 @@ module Api2cart::Daemon
     attr_accessor :stores_quota
     attr_accessor :closing_request_conditions
 
-    def try_again(store_key, request_host, request_port)
-      guard(store_key, request_host, request_port) { yield }
+    def try_again(store_key, api_key, request_host, request_port)
+      guard(store_key, api_key, request_host, request_port) { yield }
     end
 
     def make_request(store_key)
@@ -39,9 +39,9 @@ module Api2cart::Daemon
       stores_quota[store_key] >= 1
     end
 
-    def close_session_or_wait_for_closure(store_key, request_host, request_port)
+    def close_session_or_wait_for_closure(store_key, api_key, request_host, request_port)
       unless already_closing_session?(store_key)
-        close_session(store_key, request_host, request_port)
+        close_session(store_key, api_key, request_host, request_port)
       else
         puts "#{store_key} is waiting for quota"
         wait_for_closure(store_key)
@@ -56,16 +56,16 @@ module Api2cart::Daemon
       closing_request_conditions[store_key].wait
     end
 
-    def closing_request_url(store_key, request_host, request_port)
-      "http://#{request_host}:#{request_port}/v1.0/cart.disconnect.json?store_key=#{store_key}"
+    def closing_request_url(store_key, api_key, request_host, request_port)
+      "http://#{request_host}:#{request_port}/v1.0/cart.disconnect.json?api_key=#{api_key}&store_key=#{store_key}"
     end
 
-    def close_session(store_key, request_host, request_port)
+    def close_session(store_key, api_key, request_host, request_port)
       condition = Celluloid::Condition.new
       closing_request_conditions[store_key] = condition
 
       puts "Closing #{store_key}..."
-      HTTP.get(closing_request_url(store_key, request_host, request_port), socket_class: Celluloid::IO::TCPSocket)
+      HTTP.get(closing_request_url(store_key, api_key, request_host, request_port), socket_class: Celluloid::IO::TCPSocket)
       puts "...closed #{store_key}"
       closing_request_conditions.delete store_key
 
