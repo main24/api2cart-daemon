@@ -8,6 +8,10 @@ module Api2cart::Daemon
     end
 
     def guard(store_key, request_host, request_port)
+      puts ''
+      puts "Request for #{store_key}"
+      puts "Quota: #{stores_quota}"
+
       if can_make_request?(store_key)
         make_request(store_key) { yield }
       else
@@ -27,6 +31,7 @@ module Api2cart::Daemon
 
     def make_request(store_key)
       stores_quota[store_key] -= 1
+      puts "Making request for #{store_key}"
       yield
     end
 
@@ -38,6 +43,7 @@ module Api2cart::Daemon
       unless already_closing_session?(store_key)
         close_session(store_key, request_host, request_port)
       else
+        puts "#{store_key} is waiting for quota"
         wait_for_closure(store_key)
       end
     end
@@ -58,7 +64,9 @@ module Api2cart::Daemon
       condition = Celluloid::Condition.new
       closing_request_conditions[store_key] = condition
 
+      puts "Closing #{store_key}..."
       HTTP.get(closing_request_url(store_key, request_host, request_port), socket_class: Celluloid::IO::TCPSocket)
+      puts "...closed #{store_key}"
       closing_request_conditions.delete store_key
 
       stores_quota[store_key] = 5

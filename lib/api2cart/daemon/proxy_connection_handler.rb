@@ -1,11 +1,8 @@
-require 'reel/spy'
 require 'uri'
 
 module Api2cart::Daemon
   class ProxyConnectionHandler < Struct.new(:anti_throttler)
     def handle_proxy_connection(client_socket)
-      client_socket = Reel::Spy.new client_socket
-
       http_message = read_http_message(client_socket)
       response = compose_response_for(http_message)
       send_response_to_client(client_socket, response)
@@ -39,9 +36,7 @@ module Api2cart::Daemon
     end
 
     def send_request_to_remote_server(host, port, request)
-      remote_server_socket = TCPSocket.new host, port
-      remote_server_socket = Celluloid::IO::TCPSocket.from_ruby_socket remote_server_socket
-      remote_server_socket = Reel::Spy.new remote_server_socket
+      remote_server_socket = Celluloid::IO::TCPSocket.new host, port
 
       remote_server_socket.write request
       read_http_message(remote_server_socket).message
