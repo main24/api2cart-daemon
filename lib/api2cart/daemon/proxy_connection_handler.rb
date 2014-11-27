@@ -36,7 +36,7 @@ module Api2cart::Daemon
     end
 
     def send_request_to_remote_server(host, port, request)
-      remote_server_socket = TCPSocket.new host, port
+      remote_server_socket = Celluloid::IO::TCPSocket.new host, port
 
       remote_server_socket.write request
       read_http_message(remote_server_socket).message
