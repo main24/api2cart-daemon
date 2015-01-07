@@ -19,10 +19,6 @@ describe Api2cart::Daemon::ProxyServer do
     sleep 0.05
   end
 
-  def request_to_random_store
-    "http://localhost:4096/v1.0/product.count.json?store_key=#{rand}"
-  end
-
   context 'when it is an API2Cart request' do
     describe 'total simultaneous request count restriction' do
       context 'given maximum allowed amount of simultaneous requests is 20' do

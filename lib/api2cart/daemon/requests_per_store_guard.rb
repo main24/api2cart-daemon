@@ -1,7 +1,7 @@
 require 'http'
 
 module Api2cart::Daemon
-  class SessionsPerStoreGuard
+  class RequestsPerStoreGuard
     def initialize
       self.stores_quota = Hash.new(0)
       self.closing_request = {}

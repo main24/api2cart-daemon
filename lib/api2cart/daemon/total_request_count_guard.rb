@@ -1,5 +1,5 @@
 module Api2cart::Daemon
-  class TotalSessionCountGuard
+  class TotalRequestCountGuard
     def initialize
       self.request_counter = RequestCounter.new
       self.waiting_queue = []
