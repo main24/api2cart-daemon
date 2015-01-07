@@ -1,14 +1,15 @@
 module Api2cart::Daemon
   class TotalRequestCountGuard
     def initialize
-      self.request_counter = RequestCounter.new
+      self.queued_request_counter = RequestCounter.new
       self.waiting_queue = []
     end
 
     def guard
-      wait_in_queue! if request_counter.request_count >= 20
-
-      response = request_counter.count_request { yield }
+      response = queued_request_counter.count_request do
+        wait_in_queue! if queued_request_counter.request_count > 20
+        yield
+      end
 
       move_queue!
       response
@@ -16,7 +17,7 @@ module Api2cart::Daemon
 
     protected
 
-    attr_accessor :requests_currently_running, :waiting_queue, :request_counter
+    attr_accessor :requests_currently_running, :waiting_queue, :queued_request_counter
 
     def move_queue!
       return if waiting_queue.empty?
@@ -26,6 +27,7 @@ module Api2cart::Daemon
     end
 
     def wait_in_queue!
+      puts "Waiting for overall quota (currently #{queued_request_counter.request_count} requests are queued)"
       condition = Celluloid::Condition.new
       waiting_queue << condition
       condition.wait
