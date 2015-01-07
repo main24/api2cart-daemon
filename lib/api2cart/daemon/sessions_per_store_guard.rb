@@ -13,12 +13,9 @@ module Api2cart::Daemon
       puts "Request for #{store_key}"
       puts "Quota: #{stores_quota}"
 
-      if can_make_request?(store_key)
-        make_request(store_key) { yield }
-      else
-        close_session_or_wait_for_closure(store_key, api_key, request_host, request_port)
-        try_again(store_key, api_key, request_host, request_port) { yield }
-      end
+      close_session_or_wait_for_closure(store_key, api_key, request_host, request_port) until can_make_request?(store_key)
+
+      make_request(store_key) { yield }
     end
 
     protected
@@ -26,10 +23,6 @@ module Api2cart::Daemon
     attr_accessor :stores_quota
     attr_accessor :closing_request
     attr_accessor :current_requests
-
-    def try_again(store_key, api_key, request_host, request_port)
-      guard(store_key, api_key, request_host, request_port) { yield }
-    end
 
     def make_request(store_key)
       stores_quota[store_key] -= 1
