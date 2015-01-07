@@ -1,5 +1,5 @@
 module Api2cart::Daemon
-  class RequestCounter
+  class TotalRequestCountGuard::RequestCounter
     attr_reader :request_count
 
     def initialize
