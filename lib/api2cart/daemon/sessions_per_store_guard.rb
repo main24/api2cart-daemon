@@ -78,9 +78,13 @@ module Api2cart::Daemon
       puts "...closed #{store_key}"
       closing_request.delete store_key
 
-      stores_quota[store_key] = 5
+      increase_store_quota(store_key)
 
       condition.broadcast
+    end
+
+    def increase_store_quota(store_key)
+      stores_quota[store_key] = 5
     end
   end
 end
