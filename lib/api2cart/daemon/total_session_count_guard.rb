@@ -1,37 +1,20 @@
 module Api2cart::Daemon
   class TotalSessionCountGuard
     def initialize
-      self.requests_currently_running = []
+      self.request_counter = RequestCounter.new
       self.waiting_queue = []
     end
 
     def guard
-      if requests_currently_running.count >= 20
-        wait_in_queue!
-      end
-
-      response = run_request { yield }
-
+      wait_in_queue! if request_counter.request_count >= 20
+      response = yield
       move_queue!
-
       response
     end
 
     protected
 
-    attr_accessor :requests_currently_running
-    attr_accessor :waiting_queue
-
-    def run_request(&block)
-      token = Object.new
-      requests_currently_running << token
-
-      response = yield
-
-      requests_currently_running.delete token
-
-      response
-    end
+    attr_accessor :requests_currently_running, :waiting_queue, :request_counter
 
     def move_queue!
       return if waiting_queue.empty?
