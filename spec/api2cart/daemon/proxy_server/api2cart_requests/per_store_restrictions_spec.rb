@@ -235,10 +235,6 @@ describe Api2cart::Daemon::ProxyServer do
                                                   ]
         end
       end
-
-      context 'when I do several requests to different stores' do
-
-      end
     end
   end
 end
