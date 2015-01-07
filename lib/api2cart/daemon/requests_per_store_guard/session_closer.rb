@@ -1,5 +1,5 @@
 module Api2cart::Daemon
-  class RequestsPerStoreGuard::SessionCloser < Struct.new(:store_quotas, :currently_running_requests)
+  class RequestsPerStoreGuard::SessionCloser < Struct.new(:store_quotas, :currently_running_requests, :total_request_count_guard)
     def initialize(*args)
       super
       self.closing_requests = {}
@@ -9,7 +9,7 @@ module Api2cart::Daemon
       unless already_closing_session?(store_key)
         close_session(store_key, api_key, request_host, request_port)
       else
-        puts "#{store_key} is waiting for quota"
+        puts "#{store_key} is waiting for store quota"
         wait_for_closure(store_key)
       end
     end
@@ -41,7 +41,9 @@ module Api2cart::Daemon
       wait_for_current_store_requests_to_complete(store_key)
 
       puts "Closing #{store_key}..."
-      HTTP.get(closing_requests_url(store_key, api_key, request_host, request_port), socket_class: Celluloid::IO::TCPSocket)
+      total_request_count_guard.guard do
+        HTTP.get(closing_requests_url(store_key, api_key, request_host, request_port), socket_class: Celluloid::IO::TCPSocket)
+      end
       puts "...closed #{store_key}"
       closing_requests.delete store_key
 

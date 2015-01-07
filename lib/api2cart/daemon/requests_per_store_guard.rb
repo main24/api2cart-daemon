@@ -1,11 +1,12 @@
 require 'http'
 
 module Api2cart::Daemon
-  class RequestsPerStoreGuard
-    def initialize
-      self.currently_running_requests = Hash.new([])
+  class RequestsPerStoreGuard < Struct.new(:total_request_count_guard)
+    def initialize(*args)
+      super
+      self.currently_running_requests = Hash.new { |hash, key| hash[key] = [] }
       self.store_quotas = StoreQuotas.new
-      self.session_closer = SessionCloser.new store_quotas, currently_running_requests
+      self.session_closer = SessionCloser.new store_quotas, currently_running_requests, total_request_count_guard
     end
 
     def guard(store_key, api_key, request_host, request_port)
@@ -28,7 +29,8 @@ module Api2cart::Daemon
 
       condition = Celluloid::Condition.new
       currently_running_requests[store_key] << condition
-      result = yield
+
+      result = total_request_count_guard.guard { yield }
 
       condition.broadcast
       currently_running_requests[store_key].delete condition
