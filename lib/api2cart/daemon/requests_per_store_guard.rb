@@ -3,7 +3,7 @@ require 'http'
 module Api2cart::Daemon
   class RequestsPerStoreGuard
     def initialize
-      self.stores_quota = Hash.new(0)
+      self.store_quotas = StoreQuotas.new
       self.closing_request = {}
       self.current_requests = Hash.new([])
     end
@@ -11,21 +11,19 @@ module Api2cart::Daemon
     def guard(store_key, api_key, request_host, request_port)
       puts ''
       puts "Request for #{store_key}"
-      puts "Quota: #{stores_quota}"
 
-      close_session_or_wait_for_closure(store_key, api_key, request_host, request_port) until can_make_request?(store_key)
+      close_session_or_wait_for_closure(store_key, api_key, request_host, request_port) until store_quotas.has_quota?(store_key)
 
       make_request(store_key) { yield }
     end
 
     protected
 
-    attr_accessor :stores_quota
-    attr_accessor :closing_request
-    attr_accessor :current_requests
+    attr_accessor :store_quotas, :closing_request, :current_requests
 
     def make_request(store_key)
-      stores_quota[store_key] -= 1
+      store_quotas.use_quota! store_key
+
       puts "Making request for #{store_key}"
 
       condition = Celluloid::Condition.new
@@ -36,10 +34,6 @@ module Api2cart::Daemon
       current_requests[store_key].delete condition
 
       result
-    end
-
-    def can_make_request?(store_key)
-      stores_quota[store_key] >= 1
     end
 
     def close_session_or_wait_for_closure(store_key, api_key, request_host, request_port)
@@ -78,13 +72,9 @@ module Api2cart::Daemon
       puts "...closed #{store_key}"
       closing_request.delete store_key
 
-      increase_store_quota(store_key)
+      store_quotas.replenish_quota! store_key
 
       condition.broadcast
-    end
-
-    def increase_store_quota(store_key)
-      stores_quota[store_key] = 5
     end
   end
 end
