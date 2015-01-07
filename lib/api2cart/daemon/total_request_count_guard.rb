@@ -7,7 +7,9 @@ module Api2cart::Daemon
 
     def guard
       wait_in_queue! if request_counter.request_count >= 20
-      response = yield
+
+      response = request_counter.count_request { yield }
+
       move_queue!
       response
     end

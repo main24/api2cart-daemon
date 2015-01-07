@@ -8,8 +8,10 @@ module Api2cart::Daemon
 
     def count_request
       self.request_count += 1
-      yield
+      result = yield
       self.request_count -= 1
+
+      result
     end
 
     protected
