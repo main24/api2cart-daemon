@@ -1,5 +1,5 @@
 describe Api2cart::Daemon::ProxyServer do
-  let(:remote_server) { InspectableMockServer.new(4096, '') }
+  let(:mock_server) { InspectableMockServer.new(4096, '') }
   let(:daemon_proxy) { Api2cart::Daemon::ProxyServer.new(2048) }
 
   before do
@@ -8,13 +8,13 @@ describe Api2cart::Daemon::ProxyServer do
   end
 
   before do
-    remote_server.run_async
+    mock_server.run_async
     daemon_proxy.run_async
   end
 
   after do
     Celluloid::Actor.kill(daemon_proxy)
-    Celluloid::Actor.kill(remote_server)
+    Celluloid::Actor.kill(mock_server)
 
     sleep 0.05
   end
@@ -29,26 +29,32 @@ describe Api2cart::Daemon::ProxyServer do
         context 'when I make 20 requests to different stores' do
           before do
             20.times { make_async_request(request_to_random_store) }
+            mock_server.wait_for_number_of_requests(20)
           end
 
           specify 'they all reach remote server' do
-            expect(remote_server.request_queue.count).to eq 20
+            expect(mock_server.request_queue.count).to eq 20
           end
 
           context 'when I make more requests' do
             before do
+              mock_server.wait_for_number_of_requests(20)
               3.times { make_async_request(request_to_random_store) }
+              sleep 0.05
             end
 
             it 'does not reach the server' do
-              expect(remote_server.request_queue.count).to eq 20
+              expect(mock_server.request_queue.count).to eq 20
             end
 
             context 'when first request is complete' do
-              before { remote_server.respond_to_first }
+              before do
+                mock_server.respond_to_first
+                mock_server.wait_for_number_of_requests(21)
+              end
 
               specify '21st request reached the server' do
-                expect(remote_server.request_queue.count).to eq 20
+                expect(mock_server.request_queue.count).to eq 20
               end
             end
           end
