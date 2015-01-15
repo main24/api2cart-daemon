@@ -17,13 +17,8 @@ module Api2cart::Daemon
     end
 
     def request_remote_server(http_message)
-      begin
-        processed_message = process_client_request(http_message)
-        send_request_to_remote_server(http_message.request_host, http_message.request_port, processed_message)
-      rescue Exception => e
-        puts "! Problem connecting to server: #{e.inspect}"
-        internal_server_error(e)
-      end
+      processed_message = process_client_request(http_message)
+      send_request_to_remote_server(http_message.request_host, http_message.request_port, processed_message)
     end
 
     def process_client_request(client_request)
@@ -37,9 +32,13 @@ module Api2cart::Daemon
 
     def send_request_to_remote_server(host, port, request)
       remote_server_socket = Celluloid::IO::TCPSocket.new host, port
-
       remote_server_socket.write request
       read_http_message(remote_server_socket).message
+    rescue Exception => e
+      puts "! Problem connecting to server: #{e.inspect}"
+      internal_server_error(e)
+    ensure
+      remote_server_socket.close
     end
 
     def send_response_to_client(client_socket, response)
