@@ -44,7 +44,6 @@ module Api2cart::Daemon
 
     def send_response_to_client(client_socket, response)
       client_socket.write response
-      client_socket.close
     end
 
     def not_proxy_request?(http_message)
