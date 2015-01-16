@@ -32,8 +32,8 @@ module Api2cart::Daemon
 
       result = total_request_count_guard.guard { yield }
 
-      condition.broadcast
       currently_running_requests[store_key].delete condition
+      condition.broadcast
 
       result
     end
