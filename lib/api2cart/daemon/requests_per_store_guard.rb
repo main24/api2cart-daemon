@@ -10,8 +10,7 @@ module Api2cart::Daemon
     end
 
     def guard(store_key, api_key, request_host, request_port)
-      puts ''
-      puts "Request for #{store_key}"
+      LOGGER.debug "\nRequest for #{store_key}"
 
       session_closer.close_session_or_wait_for_closure(store_key, api_key, request_host, request_port) until store_quotas.has_quota?(store_key)
 
@@ -23,7 +22,7 @@ module Api2cart::Daemon
     attr_accessor :store_quotas, :session_closer, :currently_running_requests
 
     def make_request(store_key)
-      puts "Making request for #{store_key}"
+      LOGGER.debug "Making request for #{store_key}"
 
       store_quotas.use_quota! store_key
 

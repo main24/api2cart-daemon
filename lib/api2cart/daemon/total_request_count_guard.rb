@@ -27,7 +27,7 @@ module Api2cart::Daemon
     end
 
     def wait_in_queue!
-      puts "Waiting for overall quota (currently #{queued_request_counter.request_count} requests are queued)"
+      LOGGER.debug "Waiting for overall quota (currently #{queued_request_counter.request_count} requests are queued)"
       condition = Celluloid::Condition.new
       waiting_queue << condition
       condition.wait

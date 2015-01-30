@@ -35,7 +35,7 @@ module Api2cart::Daemon
       remote_server_socket.write request
       read_http_message(remote_server_socket).message
     rescue Exception => e
-      puts "! Problem connecting to server: #{e.inspect}"
+      LOGGER.error "! Problem connecting to server: #{e.inspect}"
       internal_server_error(e)
     ensure
       remote_server_socket.close

@@ -16,7 +16,7 @@ module Api2cart::Daemon
 
     def bind_proxy_socket
       TCPServer.new('', port).tap do
-        puts "API2Cart Daemon is running at 0.0.0.0:#{port}"
+        LOGGER.info "API2Cart Daemon is running at 0.0.0.0:#{port}"
       end
     end
 
@@ -28,7 +28,7 @@ module Api2cart::Daemon
       begin
         connection_handler.handle_proxy_connection(client_socket)
       rescue Exception => e
-        puts "! Exception: #{e.inspect}"
+        LOGGER.error "! Exception: #{e.inspect}"
       ensure
         client_socket.close
       end

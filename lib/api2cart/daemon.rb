@@ -9,9 +9,12 @@ require 'api2cart/daemon/anti_throttler'
 require 'api2cart/daemon/proxy_connection_handler'
 require 'api2cart/daemon/proxy_server'
 require 'active_support/core_ext/module/delegation'
+require 'syslog/logger'
 
 module Api2cart
   module Daemon
+    LOGGER = Syslog::Logger.new 'api2cart-daemon'
+
     def self.run(port)
       ProxyServer.new(port).run
     end

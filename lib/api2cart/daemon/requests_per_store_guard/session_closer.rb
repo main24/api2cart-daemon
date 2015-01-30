@@ -9,7 +9,7 @@ module Api2cart::Daemon
       unless already_closing_session?(store_key)
         close_session(store_key, api_key, request_host, request_port)
       else
-        puts "#{store_key} is waiting for store quota"
+        LOGGER.debug "#{store_key} is waiting for store quota"
         wait_for_closure(store_key)
       end
     end
@@ -40,11 +40,11 @@ module Api2cart::Daemon
 
       wait_for_current_store_requests_to_complete(store_key)
 
-      puts "Closing #{store_key}..."
+      LOGGER.debug "Closing #{store_key}..."
       total_request_count_guard.guard do
         HTTP.get(closing_requests_url(store_key, api_key, request_host, request_port), socket_class: Celluloid::IO::TCPSocket)
       end
-      puts "...closed #{store_key}"
+      LOGGER.debug "...closed #{store_key}"
       closing_requests.delete store_key
 
       store_quotas.replenish_quota! store_key
