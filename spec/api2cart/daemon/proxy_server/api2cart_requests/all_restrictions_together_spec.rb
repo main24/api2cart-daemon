@@ -5,6 +5,8 @@ describe Api2cart::Daemon::ProxyServer do
   before do
     Celluloid.shutdown
     Celluloid.boot
+
+    Api2cart::Daemon.total_request_quota = 30
   end
 
   before do
@@ -15,6 +17,7 @@ describe Api2cart::Daemon::ProxyServer do
   after do
     Celluloid::Actor.kill(daemon_proxy)
     Celluloid::Actor.kill(mock_server)
+    Api2cart::Daemon.total_request_quota = nil
 
     sleep 0.05
   end

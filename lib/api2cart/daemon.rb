@@ -14,6 +14,15 @@ require 'syslog/logger'
 module Api2cart
   module Daemon
     LOGGER = Syslog::Logger.new 'api2cart-daemon'
+    @@total_request_quota = nil
+
+    def self.total_request_quota=(total_request_quota)
+      @@total_request_quota = total_request_quota
+    end
+
+    def self.total_request_quota
+      (@@total_request_quota || ENV['API2CART_DAEMON_TOTAL_REQUEST_QUOTA'] || 20).to_i
+    end
 
     def self.run(port)
       ProxyServer.new(port).run
